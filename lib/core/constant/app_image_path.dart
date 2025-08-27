@@ -11,5 +11,9 @@ class AppImagePath {
   static const String imageMedPro4 = 'assets/images/image_medic_product_4.png';
   static const String imageMedPro5 = 'assets/images/image_medic_product_5.png';
   static const String imageMedPro6 = 'assets/images/image_medic_product_6.png';
+  static const String imageEllipse1 = 'assets/images/image_Ellipse_1.png';
+  static const String imageEllipse2 = 'assets/images/image_Ellipse_2.png';
+  static const String imageEllipse3 = 'assets/images/image_Ellipse_3.png';
+
 
 }
