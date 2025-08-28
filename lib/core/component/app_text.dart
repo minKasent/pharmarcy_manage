@@ -13,6 +13,8 @@ class AppText extends StatelessWidget {
       content ,
        style: style ?? AppTextStyle.text10Regular,
       textAlign: TextAlign.center,
+
+
     );
   }
 }

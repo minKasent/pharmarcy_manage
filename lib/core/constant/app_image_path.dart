@@ -7,7 +7,7 @@ class AppImagePath {
   static const String imageKidney = 'assets/images/image_kidney.png';
   static const String imageMedPro1 = 'assets/images/image_medic_product_1.png';
   static const String imageMedPro2 = 'assets/images/image_medic_product_2.png';
-  static const String imageMedPro3 = 'assets/images/image_medic_product_3.png';
+  static const String imageMedPro3 = 'assets/images/image_medic_product_9.png';
   static const String imageMedPro4 = 'assets/images/image_medic_product_4.png';
   static const String imageMedPro5 = 'assets/images/image_medic_product_5.png';
   static const String imageMedPro6 = 'assets/images/image_medic_product_6.png';
