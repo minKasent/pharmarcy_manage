@@ -3,7 +3,7 @@
 ## 📌 YÊU CẦU CÀI ĐẶT TRƯỚC
 
 ### 1. Cài đặt các phần mềm cần thiết:
-- ✅ **Java JDK 17**: https://www.oracle.com/java/technologies/downloads/#java17
+- ✅ **Java JDK 21**: https://www.oracle.com/java/technologies/downloads/#java21
 - ✅ **Android Studio**: https://developer.android.com/studio
 - ✅ **IntelliJ IDEA**: https://www.jetbrains.com/idea/download/
 - ✅ **PostgreSQL**: https://www.postgresql.org/download/
@@ -357,7 +357,7 @@ Nếu gặp lỗi:
 4. Đảm bảo versions phần mềm phù hợp
 
 **Versions khuyến nghị:**
-- Java: 17+
+- Java: 21
 - Flutter: 3.0+
 - PostgreSQL: 12+
 - Android Studio: Latest

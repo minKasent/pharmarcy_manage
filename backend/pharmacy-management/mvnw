@@ -1,0 +1,5 @@
+#!/bin/sh
+# Maven Wrapper for Unix-like systems
+MAVEN_PROJECTBASEDIR="$PWD"
+export MAVEN_PROJECTBASEDIR
+exec "$MAVEN_PROJECTBASEDIR/mvnw.sh" "$@"
