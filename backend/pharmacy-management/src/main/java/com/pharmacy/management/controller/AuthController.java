@@ -1,5 +1,6 @@
 package com.pharmacy.management.controller;
 
+import com.pharmacy.management.dto.ChangePasswordDTO;
 import com.pharmacy.management.dto.JwtResponse;
 import com.pharmacy.management.dto.LoginDTO;
 import com.pharmacy.management.dto.RegisterDTO;
@@ -15,10 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@RequestMapping("/auth")
 public class AuthController {
-    
     @Autowired
     private AuthService authService;
     
@@ -45,6 +44,16 @@ public class AuthController {
         
         Map<String, String> response = new HashMap<>();
         response.put("message", "Đăng xuất thành công!");
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO) {
+        authService.changePassword(changePasswordDTO);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Đổi mật khẩu thành công!");
         
         return ResponseEntity.ok(response);
     }

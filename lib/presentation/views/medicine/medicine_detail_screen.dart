@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../data/models/medicine_model.dart';
+import '../../viewmodels/medicine_viewmodel.dart';
+import 'add_medicine_screen.dart';
 
 class MedicineDetailScreen extends StatelessWidget {
   final MedicineModel medicine;
 
-  const MedicineDetailScreen({
-    Key? key,
-    required this.medicine,
-  }) : super(key: key);
+  const MedicineDetailScreen({Key? key, required this.medicine})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,23 +19,16 @@ class MedicineDetailScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
-        title: Text(
-          medicine.name,
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(medicine.name, style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              // TODO: Navigate to edit screen
-            },
+            onPressed: () => _navigateToEditScreen(context),
           ),
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () {
-              // TODO: Delete medicine
-            },
+            onPressed: () => _showDeleteDialog(context),
           ),
         ],
       ),
@@ -70,12 +65,16 @@ class MedicineDetailScreen extends StatelessWidget {
                 _buildInfoRow(
                   'Số lượng tồn',
                   '${medicine.quantityInStock} ${medicine.unitOfMeasure ?? ''}',
-                  valueColor: medicine.quantityInStock <= (medicine.minimumStock ?? 10)
+                  valueColor:
+                      medicine.quantityInStock <= (medicine.minimumStock ?? 10)
                       ? AppColors.error
                       : AppColors.success,
                 ),
                 if (medicine.minimumStock != null)
-                  _buildInfoRow('Tồn kho tối thiểu', '${medicine.minimumStock}'),
+                  _buildInfoRow(
+                    'Tồn kho tối thiểu',
+                    '${medicine.minimumStock}',
+                  ),
                 _buildInfoRow(
                   'Giá bán',
                   '${NumberFormat('#,###').format(medicine.price)}đ',
@@ -87,7 +86,11 @@ class MedicineDetailScreen extends StatelessWidget {
                   _buildInfoRow(
                     'Ngày hết hạn',
                     DateFormat('dd/MM/yyyy').format(medicine.expiryDate!),
-                    valueColor: medicine.expiryDate!.difference(DateTime.now()).inDays <= 30
+                    valueColor:
+                        medicine.expiryDate!
+                                .difference(DateTime.now())
+                                .inDays <=
+                            30
                         ? AppColors.warning
                         : null,
                   ),
@@ -96,7 +99,8 @@ class MedicineDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Additional Information Card
-            if (medicine.description != null || medicine.storageCondition != null)
+            if (medicine.description != null ||
+                medicine.storageCondition != null)
               _buildCard(
                 title: 'Thông tin bổ sung',
                 icon: Icons.description,
@@ -117,13 +121,18 @@ class MedicineDetailScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             medicine.description!,
-                            style: const TextStyle(color: AppColors.textPrimary),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   if (medicine.storageCondition != null)
-                    _buildInfoRow('Điều kiện bảo quản', medicine.storageCondition!),
+                    _buildInfoRow(
+                      'Điều kiện bảo quản',
+                      medicine.storageCondition!,
+                    ),
                 ],
               ),
           ],
@@ -144,7 +153,7 @@ class MedicineDetailScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 5,
           ),
@@ -204,5 +213,80 @@ class MedicineDetailScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _navigateToEditScreen(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddMedicineScreen(medicine: medicine),
+      ),
+    );
+
+    if (result == true && context.mounted) {
+      Navigator.pop(context, true);
+    }
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Xác nhận xóa'),
+        content: Text('Bạn có chắc chắn muốn xóa thuốc "${medicine.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () => _deleteMedicine(context, dialogContext),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Xóa', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteMedicine(
+    BuildContext context,
+    BuildContext dialogContext,
+  ) async {
+    Navigator.pop(dialogContext);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (loadingContext) =>
+          const Center(child: CircularProgressIndicator()),
+    );
+
+    final medicineViewModel = Provider.of<MedicineViewModel>(
+      context,
+      listen: false,
+    );
+    final success = await medicineViewModel.deleteMedicine(medicine.id!);
+
+    if (context.mounted) {
+      Navigator.pop(context);
+
+      if (success) {
+        Fluttertoast.showToast(
+          msg: "Xóa thuốc thành công",
+          backgroundColor: AppColors.success,
+          textColor: Colors.white,
+        );
+        Navigator.pop(context, true);
+      } else {
+        Fluttertoast.showToast(
+          msg: medicineViewModel.errorMessage.isNotEmpty
+              ? medicineViewModel.errorMessage
+              : "Có lỗi xảy ra",
+          backgroundColor: AppColors.error,
+          textColor: Colors.white,
+        );
+      }
+    }
   }
 }

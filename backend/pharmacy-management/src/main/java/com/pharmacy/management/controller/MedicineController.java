@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/medicines")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@RequestMapping("/medicines")
 public class MedicineController {
     
     @Autowired

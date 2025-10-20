@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: pharmacy_db
       POSTGRES_USER: pharmacy_user
-      POSTGRES_PASSWORD: pharmacy_password
+      POSTGRES_PASSWORD: postgre
     ports:
       - "5432:5432"
     volumes:

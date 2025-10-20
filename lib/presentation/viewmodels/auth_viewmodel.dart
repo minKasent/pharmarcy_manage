@@ -4,18 +4,18 @@ import 'base_viewmodel.dart';
 
 class AuthViewModel extends BaseViewModel {
   final AuthRepository _authRepository = AuthRepository();
-  
+
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
-  
+
   bool get isLoggedIn => _currentUser != null;
-  
+
   Future<bool> login(String username, String password) async {
     try {
       setLoading();
-      
+
       _currentUser = await _authRepository.login(username, password);
-      
+
       setSuccess();
       return true;
     } catch (e) {
@@ -23,7 +23,7 @@ class AuthViewModel extends BaseViewModel {
       return false;
     }
   }
-  
+
   Future<bool> register({
     required String username,
     required String password,
@@ -33,7 +33,7 @@ class AuthViewModel extends BaseViewModel {
   }) async {
     try {
       setLoading();
-      
+
       await _authRepository.register(
         username: username,
         password: password,
@@ -41,7 +41,7 @@ class AuthViewModel extends BaseViewModel {
         fullName: fullName,
         phoneNumber: phoneNumber,
       );
-      
+
       setSuccess();
       return true;
     } catch (e) {
@@ -49,20 +49,20 @@ class AuthViewModel extends BaseViewModel {
       return false;
     }
   }
-  
+
   Future<void> logout() async {
     try {
       setLoading();
-      
+
       await _authRepository.logout();
       _currentUser = null;
-      
+
       setIdle();
     } catch (e) {
       setError(e.toString());
     }
   }
-  
+
   Future<void> checkLoginStatus() async {
     try {
       final isLoggedIn = await _authRepository.isLoggedIn();
@@ -71,6 +71,26 @@ class AuthViewModel extends BaseViewModel {
       }
     } catch (e) {
       // Silent fail
+    }
+  }
+
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      setLoading();
+
+      await _authRepository.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+      setSuccess();
+      return true;
+    } catch (e) {
+      setError(e.toString());
+      return false;
     }
   }
 }

@@ -6,6 +6,8 @@ import '../../viewmodels/medicine_viewmodel.dart';
 import '../medicine/medicine_list_screen.dart';
 import '../medicine/add_medicine_screen.dart';
 import '../auth/login_screen.dart';
+import '../profile/profile_screen.dart';
+import '../profile/change_password_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,17 +18,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  
+
   final List<Widget> _screens = [
     const DashboardView(),
     const MedicineListScreen(),
     const ProfileView(),
   ];
 
+  void _refreshDashboard(BuildContext context) {
+    final medicineViewModel = Provider.of<MedicineViewModel>(
+      context,
+      listen: false,
+    );
+    medicineViewModel.loadMedicines();
+    medicineViewModel.loadExpiringMedicines();
+    medicineViewModel.loadLowStockMedicines();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final authViewModel = Provider.of<AuthViewModel>(context);
-    
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -63,23 +73,22 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.medical_services),
             label: 'Thuốc',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Cá nhân',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Cá nhân'),
         ],
       ),
       floatingActionButton: _selectedIndex == 1
           ? FloatingActionButton(
               backgroundColor: AppColors.primary,
               child: const Icon(Icons.add, color: Colors.white),
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                await Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const AddMedicineScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const AddMedicineScreen()),
                 );
+                // Refresh data khi quay về
+                if (context.mounted) {
+                  _refreshDashboard(context);
+                }
               },
             )
           : null,
@@ -99,7 +108,10 @@ class _DashboardViewState extends State<DashboardView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final medicineViewModel = Provider.of<MedicineViewModel>(context, listen: false);
+      final medicineViewModel = Provider.of<MedicineViewModel>(
+        context,
+        listen: false,
+      );
       medicineViewModel.loadMedicines();
       medicineViewModel.loadExpiringMedicines();
       medicineViewModel.loadLowStockMedicines();
@@ -132,13 +144,15 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                   _buildStatCard(
                     title: 'Sắp hết hạn',
-                    value: medicineViewModel.expiringMedicines.length.toString(),
+                    value: medicineViewModel.expiringMedicines.length
+                        .toString(),
                     icon: Icons.warning,
                     color: AppColors.warning,
                   ),
                   _buildStatCard(
                     title: 'Sắp hết hàng',
-                    value: medicineViewModel.lowStockMedicines.length.toString(),
+                    value: medicineViewModel.lowStockMedicines.length
+                        .toString(),
                     icon: Icons.inventory_2,
                     color: AppColors.error,
                   ),
@@ -169,13 +183,24 @@ class _DashboardViewState extends State<DashboardView> {
                       context,
                       icon: Icons.add_circle,
                       label: 'Thêm thuốc',
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => const AddMedicineScreen(),
                           ),
                         );
+                        // Refresh data khi quay về
+                        if (context.mounted) {
+                          final medicineViewModel =
+                              Provider.of<MedicineViewModel>(
+                                context,
+                                listen: false,
+                              );
+                          medicineViewModel.loadMedicines();
+                          medicineViewModel.loadExpiringMedicines();
+                          medicineViewModel.loadLowStockMedicines();
+                        }
                       },
                     ),
                   ),
@@ -211,7 +236,7 @@ class _DashboardViewState extends State<DashboardView> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       spreadRadius: 1,
                       blurRadius: 5,
                     ),
@@ -231,7 +256,7 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget _buildStatCard({
+  Container _buildStatCard({
     required String title,
     required String value,
     required IconData icon,
@@ -258,20 +283,29 @@ class _DashboardViewState extends State<DashboardView> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(height: 4),
               Text(
                 title,
                 style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -323,7 +357,17 @@ class _DashboardViewState extends State<DashboardView> {
     for (var medicine in medicines) {
       total += (medicine.price * medicine.quantityInStock);
     }
-    return '${total.toStringAsFixed(0)}đ';
+
+    // Format số với đơn vị K (nghìn), M (triệu), B (tỷ)
+    if (total >= 1000000000) {
+      return '${(total / 1000000000).toStringAsFixed(1)}B';
+    } else if (total >= 1000000) {
+      return '${(total / 1000000).toStringAsFixed(1)}M';
+    } else if (total >= 1000) {
+      return '${(total / 1000).toStringAsFixed(1)}K';
+    } else {
+      return total.toStringAsFixed(0);
+    }
   }
 }
 
@@ -333,7 +377,7 @@ class ProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context);
-    
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -343,7 +387,10 @@ class ProfileView extends StatelessWidget {
             radius: 50,
             backgroundColor: AppColors.primary,
             child: Text(
-              authViewModel.currentUser?.fullName?.substring(0, 1).toUpperCase() ?? 'U',
+              authViewModel.currentUser?.fullName
+                      ?.substring(0, 1)
+                      .toUpperCase() ??
+                  'U',
               style: const TextStyle(fontSize: 40, color: Colors.white),
             ),
           ),
@@ -369,13 +416,25 @@ class ProfileView extends StatelessWidget {
             leading: const Icon(Icons.person, color: AppColors.primary),
             title: const Text('Thông tin cá nhân'),
             trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.lock, color: AppColors.primary),
             title: const Text('Đổi mật khẩu'),
             trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChangePasswordScreen(),
+                ),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings, color: AppColors.primary),
@@ -406,10 +465,7 @@ class ProfileView extends StatelessWidget {
               ),
               child: const Text(
                 'Đăng xuất',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
           ),

@@ -1,10 +1,13 @@
 package com.pharmacy.management.service;
 
+import com.pharmacy.management.dto.ChangePasswordDTO;
 import com.pharmacy.management.dto.JwtResponse;
 import com.pharmacy.management.dto.LoginDTO;
 import com.pharmacy.management.dto.RegisterDTO;
 import com.pharmacy.management.entity.User;
+import com.pharmacy.management.exception.BadRequestException;
 import com.pharmacy.management.exception.ResourceAlreadyExistsException;
+import com.pharmacy.management.exception.ResourceNotFoundException;
 import com.pharmacy.management.repository.UserRepository;
 import com.pharmacy.management.security.UserDetailsImpl;
 import com.pharmacy.management.security.jwt.JwtUtils;
@@ -76,5 +79,32 @@ public class AuthService {
     
     public void logout() {
         SecurityContextHolder.clearContext();
+    }
+    
+    @Transactional
+    public void changePassword(ChangePasswordDTO changePasswordDTO) {
+        // Lấy user hiện tại từ SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadRequestException("Người dùng chưa đăng nhập!");
+        }
+        
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng!"));
+        
+        // Kiểm tra mật khẩu hiện tại có đúng không
+        if (!passwordEncoder.matches(changePasswordDTO.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Mật khẩu hiện tại không đúng!");
+        }
+        
+        // Kiểm tra mật khẩu mới có khác mật khẩu cũ không
+        if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
+            throw new BadRequestException("Mật khẩu mới phải khác mật khẩu cũ!");
+        }
+        
+        // Cập nhật mật khẩu mới
+        user.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
+        userRepository.save(user);
     }
 }

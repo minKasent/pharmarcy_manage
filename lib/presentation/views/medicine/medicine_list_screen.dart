@@ -21,13 +21,20 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final medicineViewModel = Provider.of<MedicineViewModel>(context, listen: false);
+      final medicineViewModel = Provider.of<MedicineViewModel>(
+        context,
+        listen: false,
+      );
       medicineViewModel.loadMedicinesPaginated();
     });
-    
+
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-        final medicineViewModel = Provider.of<MedicineViewModel>(context, listen: false);
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        final medicineViewModel = Provider.of<MedicineViewModel>(
+          context,
+          listen: false,
+        );
         if (medicineViewModel.hasNextPage) {
           medicineViewModel.loadMedicinesPaginated(nextPage: true);
         }
@@ -60,8 +67,11 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         _searchController.clear();
-                        final medicineViewModel = 
-                            Provider.of<MedicineViewModel>(context, listen: false);
+                        final medicineViewModel =
+                            Provider.of<MedicineViewModel>(
+                              context,
+                              listen: false,
+                            );
                         medicineViewModel.clearSearch();
                       },
                     )
@@ -74,8 +84,10 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
               ),
             ),
             onChanged: (value) {
-              final medicineViewModel = 
-                  Provider.of<MedicineViewModel>(context, listen: false);
+              final medicineViewModel = Provider.of<MedicineViewModel>(
+                context,
+                listen: false,
+              );
               if (value.isNotEmpty) {
                 medicineViewModel.searchMedicines(value);
               } else {
@@ -84,15 +96,14 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
             },
           ),
         ),
-        
+
         // Medicine list
         Expanded(
           child: Consumer<MedicineViewModel>(
             builder: (context, medicineViewModel, _) {
-              if (medicineViewModel.isLoading && medicineViewModel.medicines.isEmpty) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+              if (medicineViewModel.isLoading &&
+                  medicineViewModel.medicines.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
               }
 
               final medicines = medicineViewModel.searchResults.isNotEmpty
@@ -112,10 +123,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'Không có thuốc nào',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -129,7 +137,9 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
-                  itemCount: medicines.length + (medicineViewModel.hasNextPage ? 1 : 0),
+                  itemCount:
+                      medicines.length +
+                      (medicineViewModel.hasNextPage ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == medicines.length) {
                       return const Center(
@@ -139,7 +149,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                         ),
                       );
                     }
-                    
+
                     final medicine = medicines[index];
                     return _buildMedicineCard(medicine);
                   },
@@ -153,16 +163,16 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   }
 
   Widget _buildMedicineCard(MedicineModel medicine) {
-    final isLowStock = medicine.quantityInStock <= (medicine.minimumStock ?? 10);
-    final isExpiringSoon = medicine.expiryDate != null &&
+    final isLowStock =
+        medicine.quantityInStock <= (medicine.minimumStock ?? 10);
+    final isExpiringSoon =
+        medicine.expiryDate != null &&
         medicine.expiryDate!.difference(DateTime.now()).inDays <= 30;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -244,8 +254,8 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: isLowStock
-                              ? AppColors.error.withOpacity(0.1)
-                              : AppColors.success.withOpacity(0.1),
+                              ? AppColors.error.withValues(alpha: 0.1)
+                              : AppColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -267,15 +277,9 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
               Wrap(
                 spacing: 8,
                 children: [
-                  _buildChip(
-                    medicine.manufacturer,
-                    Icons.business,
-                  ),
+                  _buildChip(medicine.manufacturer, Icons.business),
                   if (medicine.category != null)
-                    _buildChip(
-                      medicine.category!,
-                      Icons.category,
-                    ),
+                    _buildChip(medicine.category!, Icons.category),
                   if (isExpiringSoon)
                     _buildChip(
                       'Sắp hết hạn',
@@ -301,24 +305,17 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: (color ?? AppColors.primary).withOpacity(0.1),
+        color: (color ?? AppColors.primary).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 14,
-            color: color ?? AppColors.primary,
-          ),
+          Icon(icon, size: 14, color: color ?? AppColors.primary),
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: color ?? AppColors.primary,
-            ),
+            style: TextStyle(fontSize: 12, color: color ?? AppColors.primary),
           ),
         ],
       ),

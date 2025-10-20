@@ -38,7 +38,7 @@ public class Medicine {
     private String manufacturer;
     
     @Column(name = "unit_of_measure")
-    private String unitOfMeasure; // Viên, Hộp, Chai, Tuýp, etc.
+    private String unitOfMeasure;
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -56,7 +56,7 @@ public class Medicine {
     private LocalDate expiryDate;
     
     @Column(name = "category")
-    private String category; // Thuốc kháng sinh, Thuốc giảm đau, etc.
+    private String category; 
     
     @Column(name = "storage_condition")
     private String storageCondition;
