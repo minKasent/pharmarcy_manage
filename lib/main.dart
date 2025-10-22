@@ -8,10 +8,10 @@ import 'presentation/views/auth/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Dio client
   await DioClient().init();
-  
+
   runApp(const MyApp());
 }
 
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
           primaryColor: AppColors.primary,
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
           useMaterial3: true,
-          fontFamily: 'Roboto',
+          fontFamily: 'Poppins',
         ),
         home: const LoginScreen(),
       ),

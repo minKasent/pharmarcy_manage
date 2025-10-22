@@ -123,7 +123,13 @@ public class MedicineService {
     // Lấy danh sách thuốc sắp hết hàng
     public List<MedicineDTO> getLowStockMedicines() {
         return medicineRepository.findAll().stream()
-                .filter(m -> m.getQuantityInStock() <= m.getMinimumStock())
+                .filter(m -> {
+                    Integer minimumStock = m.getMinimumStock();
+                    if (minimumStock == null) {
+                        minimumStock = 10; // Giá trị mặc định
+                    }
+                    return m.getQuantityInStock() <= minimumStock;
+                })
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
